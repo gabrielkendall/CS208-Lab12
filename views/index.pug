@@ -1,23 +1,48 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
-  ol
-  each val in todos
-    li
-      span= val.task + ' - '
-      if val.completed > 0
-        span Completed
-      else
-        span Not Completed
-      form(method='POST' action='/delete')
-        input(type='hidden', name='id', value=val.id)
-        button(type='submit') Delete
+  .container
+    h1= title
+    p.subtitle Manage your tasks below
 
-  hr
-  h2 Add a new task
-  form(method='POST' action='/create')
-    label(for='task') Task:
-    input(type='text', name='task', id='task', required)
-    button(type='submit') Create Task
+    if errorMessage
+      .alert.alert-error= errorMessage
+
+    h2 Add a new task
+    form(method='POST' action='/create' class='task-form')
+      label(for='task') Task
+      input(type='text', name='task', id='task', required, placeholder='Enter a task')
+      button(type='submit') Create Task
+
+    hr
+
+    h2 Task List
+    if todos.length
+      ol.task-list
+        each val in todos
+          li.task-item(class=val.completed > 0 ? 'completed' : 'not-completed')
+            .task-header
+              span.task-text= val.task
+              if val.completed > 0
+                span.status-badge.completed Completed
+              else
+                span.status-badge.pending Not Completed
+
+            .task-actions
+              form(method='POST' action='/update' class='edit-form')
+                input(type='hidden', name='id', value=val.id)
+                label(for=`task-${val.id}`) Edit Task
+                input(type='text', name='task', id=`task-${val.id}`, value=val.task, required)
+
+                label(for=`completed-${val.id}`) Status
+                select(name='completed', id=`completed-${val.id}`)
+                  option(value='0', selected=val.completed == 0) Not Completed
+                  option(value='1', selected=val.completed > 0) Completed
+
+                button(type='submit') Save
+
+              form(method='POST' action='/delete' class='delete-form')
+                input(type='hidden', name='id', value=val.id)
+                button(type='submit' class='delete-btn') Delete
+    else
+      p No tasks yet.
